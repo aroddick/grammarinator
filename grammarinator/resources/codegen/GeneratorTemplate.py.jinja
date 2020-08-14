@@ -1,5 +1,5 @@
 {#
- # Copyright (c) 2020-2021 Renata Hodovan, Akos Kiss.
+ # Copyright (c) 2020-2022 Renata Hodovan, Akos Kiss.
  #
  # Licensed under the BSD 3-Clause License
  # <LICENSE.rst or https://opensource.org/licenses/BSD-3-Clause>.
@@ -47,11 +47,14 @@ if self._max_depth >= {{ 0 if node.min == 1 else node.min_depth }}:
 
 
 {% macro processAlternationNode(node) %}
-choice = self._model.choice(current, {{ node.idx }}, [0 if [{{ node.min_depth | join(', ') }}][i] > self._max_depth else w for i, w in enumerate([{{ node.conditions | join(', ') }}])])
+options, max_depth{{ node.idx }} = self._filter_options([{{ node.min_depth | join(', ') }}], [{{ node.conditions | join(', ') }}])
+self._max_depth, max_depth{{ node.idx }} = max_depth{{ node.idx }}, self._max_depth
+choice = self._model.choice(current, {{ node.idx }}, options)
 {% for child in node.out_neighbours %}
 {{ 'if' if loop.index0 == 0 else 'elif' }} choice == {{ loop.index0 }}:
     {{ processNode(child) | indent -}}
 {% endfor %}
+self._max_depth = max_depth{{ node.idx }}
 {% endmacro %}
 
 
