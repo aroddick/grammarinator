@@ -50,11 +50,16 @@ if self._max_depth >= {{ 0 if node.min == 1 else node.min_depth }}:
 options, max_depth{{ node.idx }} = self._filter_options([{{ node.min_depth | join(', ') }}], [{{ node.conditions | join(', ') }}])
 self._max_depth, max_depth{{ node.idx }} = max_depth{{ node.idx }}, self._max_depth
 choice = self._model.choice(current, {{ node.idx }}, options)
+{% set literal_alts = node.literal_alternatives() %}
+{% if literal_alts %}
+UnlexerRule(src=[{{ literal_alts | join(', ')}}][choice], parent=current)
+{% else %}
 {% for child in node.out_neighbours %}
 {{ 'if' if loop.index0 == 0 else 'elif' }} choice == {{ loop.index0 }}:
     {{ processNode(child) | indent -}}
 {% endfor %}
 self._max_depth = max_depth{{ node.idx }}
+{% endif %}
 {% endmacro %}
 
 
